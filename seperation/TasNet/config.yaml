@@ -1,0 +1,20 @@
+model:
+  L: 1000
+  N: 500
+  hidden_size: 128
+  num_layers: 3
+  nspk: 2
+  bidirectional: true
+
+dataset:
+  K: 8
+  sample_rate : 8000
+  folder_path : /mnt/d/Programs/Python/PW/projects/asteroid/zip-hindi-2k
+
+training:
+  lr: 0.001
+  batch_size: 4
+  save_folder: /mnt/d/Programs/Python/PW/projects/speech/seperation/TasNet
+  epochs: 1
+
+
