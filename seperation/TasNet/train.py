@@ -11,6 +11,7 @@ from itertools import permutations
 from tqdm import tqdm
 from time import perf_counter
 
+# Encoder class 
 class Encoder(nn.Module):
     def __init__(self,L,N):
         super(Encoder,self).__init__()
