@@ -1,5 +1,7 @@
 /speech_env/
+/speech_env_torch/
 embeddings/working_dir
+*.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

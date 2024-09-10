@@ -1,0 +1,4 @@
+python-speech-features 
+dill
+torch
+librosa
