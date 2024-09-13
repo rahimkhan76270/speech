@@ -6,7 +6,7 @@ class ClippedRelu(nn.Module):
   def __init__(self):
     super(ClippedRelu, self).__init__()
   def forward(self,x):
-    return torch.min(torch.max(x,torch.tensor(0.0)),torch.tensor(20.0))
+    return torch.clamp(x,min=0.0,max=20.0)
   
 
 class IdentityBlock(nn.Module):
@@ -100,7 +100,8 @@ class DeepSpeaker(nn.Module):
     x=torch.reshape(x,(batch,-1,2048))
     x=torch.mean(x,dim=1)
     x=self.linear(x)
-    return x
+    norm=torch.norm(x,p=2,dim=1,keepdim=True)
+    return x/norm
 
   def l2_regularization(self):
     n=self.conv_res_block1.l2_regularization()+self.conv_res_block2.l2_regularization()

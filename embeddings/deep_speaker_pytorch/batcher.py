@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 import json
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset,IterableDataset
 from collections import Counter,deque
 from deep_speaker_pytorch.constants import NUM_FBANKS,NUM_FRAMES
 from deep_speaker_pytorch.utils import load_npy,load_pickle,ensures_dir,sample_from_mfcc_file,train_test_sp_to_utt,extract_speaker
@@ -91,6 +91,7 @@ class LazyTripletBatcher:
         self.sp_to_utt_train = train_test_sp_to_utt(self.audio, is_test=False)
         self.sp_to_utt_test = train_test_sp_to_utt(self.audio, is_test=True)
         self.max_length = max_length
+        self.categorical_speakers=load_pickle(os.path.join(self.working_dir,'keras-inputs','categorical_speakers.pkl'))
         self.model = model.to(device)
         self.device=device
         self.nb_per_speaker = 2
@@ -160,6 +161,9 @@ class LazyTripletBatcher:
         anchor_utterances = []
         positive_utterances = []
         negative_utterances = []
+        anchor_speakers_list=[]
+        positive_speakers_list=[]
+        negative_speakers_list=[]
         for anchor_speaker in anchor_speakers:
             negative_speaker = np.random.choice(list(set(speakers) - {anchor_speaker}), size=1)[0]
             assert negative_speaker != anchor_speaker
@@ -168,6 +172,9 @@ class LazyTripletBatcher:
             anchor_utterances.append(pos_utterances[0])
             positive_utterances.append(pos_utterances[1])
             negative_utterances.append(neg_utterance)
+            anchor_speakers_list.append(anchor_speaker)
+            positive_speakers_list.append(anchor_speaker)
+            negative_speakers_list.append(negative_speaker)
 
         # anchor and positive should have difference utterances (but same speaker!).
         anc_pos = np.array([positive_utterances, anchor_utterances])
@@ -186,12 +193,15 @@ class LazyTripletBatcher:
             [sample_from_mfcc_file(u, self.max_length) for u in negative_utterances]
         ])
 
-        batch_y = np.zeros(shape=(len(batch_x), 1))  # dummy. sparse softmax needs something.
+        batch_y=[[self.categorical_speakers.get_index(spk_id)] for spk_id in anchor_speakers_list]
+        batch_y+=[[self.categorical_speakers.get_index(spk_id)] for spk_id in positive_speakers_list]
+        batch_y+=[[self.categorical_speakers.get_index(spk_id)] for spk_id in negative_speakers_list]
+        # batch_y = np.zeros(shape=(len(batch_x), 1))  # dummy. sparse softmax needs something.
         batch_x=torch.from_numpy(batch_x).permute(0,3,1,2)
-        batch_x.requires_grad_()
-        batch_y=torch.from_numpy(batch_y)
-        batch_y.requires_grad_()
-        return batch_x, batch_y
+        # batch_x.requires_grad_()
+        batch_y=torch.tensor(batch_y)
+        # batch_y.requires_grad_()
+        return batch_x.float(), batch_y.float()
 
     def get_batch_train(self, batch_size):
         # s1 = time()
@@ -264,10 +274,10 @@ class LazyTripletBatcher:
         for a in negative_speakers:
             self.metadata_train_speakers[a] += 1
         batch_x=torch.from_numpy(batch_x).permute(0,3,1,2)
-        batch_x.requires_grad_()
+        # batch_x.requires_grad_()
         batch_y=torch.from_numpy(batch_y)
-        batch_y.requires_grad_()
-        return batch_x, batch_y
+        # batch_y.requires_grad_()
+        return batch_x.float(), batch_y.float()
 
     def get_speaker_verification_data(self, anchor_speaker, num_different_speakers):
         speakers = list(self.audio.speakers_to_utterances.keys())
@@ -296,10 +306,10 @@ class LazyTripletBatcher:
 
         batch_y = np.zeros(shape=(len(batch_x), 1))  # dummy. sparse softmax needs something.
         batch_x=torch.from_numpy(batch_x).permute(0,3,1,2)
-        batch_x.requires_grad_()
+        # batch_x.requires_grad_()
         batch_y=torch.from_numpy(batch_y)
-        batch_y.requires_grad_()
-        return batch_x, batch_y
+        # batch_y.requires_grad_()
+        return batch_x.float(), batch_y.float()
 
 class DeepSpeakerDatasetSoftmax(Dataset):
   def __init__(self,kx,ky):
@@ -313,3 +323,16 @@ class DeepSpeakerDatasetSoftmax(Dataset):
     x=torch.permute(x,(2,0,1))
     y=torch.from_numpy(self.ky[idx]).long()
     return x,y
+
+class DeepSpeakerTripletDataset(IterableDataset):
+    def __init__(self,batcher:LazyTripletBatcher,num_batches,batch_size,is_test) -> None:
+        super(DeepSpeakerTripletDataset,self).__init__()
+        self.batcher=batcher
+        self.num_batches=num_batches
+        self.batch_size=batch_size
+        self.is_test=is_test
+    
+    def __iter__(self):
+        for _ in range(self.num_batches):
+            yield self.batcher.get_random_batch(batch_size=self.batch_size,is_test=self.is_test)
+ 

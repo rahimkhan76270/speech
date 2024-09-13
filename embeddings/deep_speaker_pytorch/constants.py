@@ -2,5 +2,5 @@ SAMPLE_RATE=16_000
 NUM_FRAMES=160
 NUM_FBANKS=64
 BATCH_SIZE=12 # incase if triplet model it should be multiple of 3
-EPOCHS=1
+EPOCHS=10
 LEARNING_RATE=0.0001

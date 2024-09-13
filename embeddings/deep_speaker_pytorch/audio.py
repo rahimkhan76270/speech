@@ -25,7 +25,7 @@ def read_mfcc(input_filename, sample_rate):
 def extract_speaker_and_utterance_ids(filename: str):  # LIBRI.
     # 'audio/dev-other/116/288045/116-288045-0000.flac'
     speaker, basename = Path(filename).parts[-2:]
-    filename.split('-')
+    # filename.split('-')
     # utterance = os.path.splitext(basename.split('-', 1)[-1])[0]
     # assert basename.split('-')[0] == speaker
     return speaker, basename.split('.')[0]
