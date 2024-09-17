@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "convtasnet"
+version = "0.0.1"
+authors = [
+    { name = "Rahim Khan", email = "rahimkhan7627047457@gmail.com" }
+]
+description = "This is a TensorFlow implementation of the official PyTorch model"
+requires-python = ">=3.12"
+
+[project.urls]
+Homepage = "https://github.com/rahimkhan76270/speech.git"

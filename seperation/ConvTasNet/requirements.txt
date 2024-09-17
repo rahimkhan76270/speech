@@ -1,0 +1,6 @@
+tensorflow
+tensorboard
+soundfile
+librosa
+tqdm
+pyyaml

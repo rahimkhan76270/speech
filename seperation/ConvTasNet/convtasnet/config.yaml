@@ -1,0 +1,58 @@
+model:
+  N: 512 # number of basis signals
+  L: 16  # length of filter
+  B: 128 # number of channels in bottle neck
+  H: 512 # number of channels in convolution resnet block
+  P: 3 # kernel size in convolution block
+  X: 8 # number of convolution block in each repeat
+  R: 3 # number of repeat of convoluton resnet blocks
+  num_spks: 2 # number of speakers
+  causal: False
+
+dataset:
+  train_audio_path: /mnt/d/Programs/Python/PW/projects/asteroid/zip-hindi-2k/train
+  test_audio_path : /mnt/d/Programs/Python/PW/projects/asteroid/zip-hindi-2k/test
+  val_audio_path : /mnt/d/Programs/Python/PW/projects/asteroid/zip-hindi-2k/val
+  sample_rate: 8000
+  audio_chunk_len: 4
+  file_ext: wav
+  batch_size: 10
+  train_data_len: 1000 
+  test_data_len: 100
+  val_data_len: 100
+
+optimizer_config :
+  optimizer_name: adam
+  learning_rate : 0.001
+  weight_decay: 0.001
+
+loss_type : sisdr  # only two choice are there for loss ['sisdr','sisnr']
+
+training:
+  num_epochs : 2
+  steps_per_epoch : 10
+  verbose : False
+
+early_stopping_config:
+  monitor : val_loss  # which quantity to monitor
+  min_delta : 0.0001
+  patience : 3
+
+model_checkpoint_config:
+  filepath : /mnt/d/Programs/Python/PW/projects/speech/seperation/ConvTasNet/convtasnet/{epoch:02d}-{val_loss:.2f}.keras
+  monitor : val_loss
+  save_best_only : True
+  save_freq : 1
+
+reduce_lr_on_plateau:
+  monitor: val_loss
+  factor : 0.1
+  patience : 10
+  min_delta : 0.0001
+  cooldown : 0
+  min_lr : 0
+
+tensorboard_config:
+  log_dir : ./logs
+  write_graph : True
+  
