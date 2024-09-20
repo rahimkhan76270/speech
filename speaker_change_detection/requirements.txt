@@ -1,0 +1,4 @@
+librosa
+python_speech_features
+tensorflow
+#pytorch     # if you are using pytorch
