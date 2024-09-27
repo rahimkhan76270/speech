@@ -3,6 +3,7 @@
 embeddings/working_dir
 *.csv
 # Byte-compiled / optimized / DLL files
+/NeMo/
 __pycache__/
 *.py[cod]
 *$py.class
